@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap CSS CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Custom animations -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+    <!-- Custom Styles -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <title>MZLAD Downloader</title>
+  </head>
+  <body>
+    <!-- Theme Switch -->
+
+    <button
+      class="floating-action-btn"
+      id="history-btn"
+      aria-label="View history"
+    >
+      <i class="fas fa-history"></i>
+    </button>
+    <button
+      class="theme-toggle"
+      id="theme-toggle"
+      aria-label="Toggle dark mode"
+    >
+      <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Settings Panel Toggle -->
+    <button
+      class="settings-toggle"
+      id="settings-toggle"
+      aria-label="Open settings"
+    >
+      <i class="fas fa-cog"></i>
+    </button>
+
+    <!-- Floating Action Button -->
+
+    <!-- Progress Bar (Fixed at top) -->
+    <div class="progress-container" id="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg blur-bg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <i class="fab fa-youtube youtube-icon"></i> MZLAD Downloader
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="#" data-page="downloader"
+                ><i class="fas fa-download me-2"></i>Downloader</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-page="history"
+                ><i class="fas fa-history me-2"></i>History</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-page="trending"
+                ><i class="fas fa-fire me-2"></i>Trending</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-page="settings"
+                ><i class="fas fa-cog me-2"></i>Settings</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container main-container">
+      <!-- Downloader Page -->
+      <div class="page-content" id="downloader-page">
+        <div class="row justify-content-center">
+          <div class="col-lg-10">
+            <!-- Main Card -->
+            <div class="card main-card animate__animated animate__fadeIn">
+              <div class="card-header">
+                <h3><i class="fab fa-youtube me-2"></i>MZLAD Downloader</h3>
+                <p class="header-subtitle">
+                  Download videos in highest quality with advanced options
+                </p>
+              </div>
+              <div class="card-body">
+                <!-- URL Input Form -->
+                <form id="download-form">
+                  <div class="url-input-container">
+                    <div class="input-group">
+                      <span class="input-group-text"
+                        ><i class="fab fa-youtube"></i
+                      ></span>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="url"
+                        name="url"
+                        placeholder="Paste a YouTube URL or search for videos..."
+                        required
+                      />
+                      <button
+                        type="button"
+                        id="fetch-info"
+                        class="btn btn-primary"
+                      >
+                        <i class="fas fa-search"></i>
+                      </button>
+                    </div>
+                    <div class="recent-urls" id="recent-urls">
+                      <!-- Recent URLs will appear here -->
+                    </div>
+                  </div>
+                  <div class="error-message" id="url-error"></div>
+                </form>
+
+                <!-- Quick Format Buttons -->
+                <div class="quick-formats">
+                  <h6>Quick Download:</h6>
+                  <div class="quick-format-buttons">
+                    <button class="btn btn-quick" data-format="mp4-high">
+                      <i class="fas fa-film"></i> HD Video
+                    </button>
+                    <button class="btn btn-quick" data-format="mp4-medium">
+                      <i class="fas fa-video"></i> Medium Video
+                    </button>
+                    <button class="btn btn-quick" data-format="mp3-high">
+                      <i class="fas fa-music"></i> High MP3
+                    </button>
+                    <button class="btn btn-quick" data-format="mp3-medium">
+                      <i class="fas fa-headphones"></i> Medium MP3
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Loading Animation -->
+                <div id="loader" class="loader" style="display: none">
+                  <div class="spinner-container">
+                    <div class="spinner"></div>
+                  </div>
+                  <p>Fetching video information...</p>
+                </div>
+
+                <!-- Results Container -->
+                <div id="result-container">
+                  <div class="row">
+                    <!-- Video Preview Column -->
+                    <div class="col-lg-5">
+                      <div class="video-preview-container">
+                        <div class="feature-badge">
+                          <i class="fas fa-play me-1"></i> Preview
+                        </div>
+                        <div class="video-thumbnail-container">
+                          <img
+                            src=""
+                            alt="Video thumbnail"
+                            id="video-thumbnail"
+                            class="video-thumbnail"
+                          />
+                          <div class="play-button" id="play-preview">
+                            <i class="fas fa-play"></i>
+                          </div>
+                        </div>
+                        <div class="video-details">
+                          <h5 id="video-title">Video Title</h5>
+                          <div class="video-meta">
+                            <span
+                              ><i class="fas fa-user me-1"></i>
+                              <span id="video-uploader">Channel</span></span
+                            >
+                            <span
+                              ><i class="fas fa-eye me-1"></i>
+                              <span id="video-views">0</span> views</span
+                            >
+                            <span
+                              ><i class="fas fa-clock me-1"></i>
+                              <span id="video-duration">0:00</span></span
+                            >
+                          </div>
+                          <div class="video-tags" id="video-tags">
+                            <!-- Tags will be added here -->
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Download Options Column -->
+                    <div class="col-lg-7">
+                      <div class="download-options-container">
+                        <div class="options-header">
+                          <h6>Download Options</h6>
+                          <div class="format-tabs">
+                            <button
+                              class="format-tab active"
+                              data-format="video"
+                            >
+                              Video
+                            </button>
+                            <button class="format-tab" data-format="audio">
+                              Audio
+                            </button>
+                            <button class="format-tab" data-format="custom">
+                              Advanced
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Video Format Options -->
+                        <div class="format-options" id="video-options">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label">Quality</label>
+                              <select
+                                class="form-select"
+                                id="video-quality-select"
+                              >
+                                <option value="best">
+                                  Best Quality (Recommended)
+                                </option>
+                                <!-- Other qualities will be added dynamically -->
+                              </select>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Format</label>
+                              <select
+                                class="form-select"
+                                id="video-format-select"
+                              >
+                                <option value="mp4">MP4 (Recommended)</option>
+                                <option value="webm">WebM</option>
+                              </select>
+                            </div>
+                            <div class="col-12">
+                              <div class="info-box">
+                                <div class="info-icon">
+                                  <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="info-content">
+                                  <strong>Resolution:</strong>
+                                  <span id="resolution-info">720p</span> •
+                                  <strong>Size:</strong>
+                                  <span id="size-info">Unknown</span> •
+                                  <strong>FPS:</strong>
+                                  <span id="fps-info">30</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            class="btn btn-primary download-btn"
+                            id="download-video-btn"
+                          >
+                            <i class="fas fa-download me-2"></i> Download Video
+                          </button>
+                        </div>
+
+                        <!-- Audio Format Options -->
+                        <div
+                          class="format-options"
+                          id="audio-options"
+                          style="display: none"
+                        >
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label">Quality</label>
+                              <select
+                                class="form-select"
+                                id="audio-quality-select"
+                              >
+                                <option value="best">
+                                  High Quality (Recommended)
+                                </option>
+                                <option value="medium">Medium Quality</option>
+                                <option value="low">Low Quality</option>
+                              </select>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Format</label>
+                              <select
+                                class="form-select"
+                                id="audio-format-select"
+                              >
+                                <option value="mp3">MP3 (Recommended)</option>
+                                <option value="m4a">M4A</option>
+                              </select>
+                            </div>
+                            <div class="col-12">
+                              <div class="info-box">
+                                <div class="info-icon">
+                                  <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="info-content">
+                                  <strong>Bitrate:</strong>
+                                  <span id="bitrate-info">128kbps</span> •
+                                  <strong>Size:</strong>
+                                  <span id="audio-size-info">Unknown</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            class="btn btn-primary download-btn"
+                            id="download-audio-btn"
+                          >
+                            <i class="fas fa-download me-2"></i> Download Audio
+                          </button>
+                        </div>
+
+                        <!-- Advanced Options -->
+                        <div
+                          class="format-options"
+                          id="custom-options"
+                          style="display: none"
+                        >
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label">Video Codec</label>
+                              <select class="form-select" id="codec-select">
+                                <option value="h264">H.264 (Compatible)</option>
+                                <option value="vp9">
+                                  VP9 (Better quality)
+                                </option>
+                                <option value="av1">AV1 (Best quality)</option>
+                              </select>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label">Audio Codec</label>
+                              <select
+                                class="form-select"
+                                id="audio-codec-select"
+                              >
+                                <option value="aac">AAC (Compatible)</option>
+                                <option value="opus">
+                                  Opus (Better quality)
+                                </option>
+                              </select>
+                            </div>
+                            <div class="col-12">
+                              <label class="form-label"
+                                >Custom Format (for advanced users)</label
+                              >
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="custom-format"
+                                placeholder="E.g.: bestvideo[height<=1080]+bestaudio/best"
+                              />
+                            </div>
+                            <div class="col-12">
+                              <div class="range-slider">
+                                <label class="form-label"
+                                  >Start Time (seconds):
+                                  <span id="start-time-value">0</span></label
+                                >
+                                <input
+                                  type="range"
+                                  class="form-range"
+                                  id="start-time"
+                                  min="0"
+                                  max="100"
+                                  value="0"
+                                />
+                              </div>
+                            </div>
+                            <div class="col-12">
+                              <div class="range-slider">
+                                <label class="form-label"
+                                  >End Time (seconds):
+                                  <span id="end-time-value">0</span></label
+                                >
+                                <input
+                                  type="range"
+                                  class="form-range"
+                                  id="end-time"
+                                  min="0"
+                                  max="100"
+                                  value="100"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            class="btn btn-primary download-btn"
+                            id="download-custom-btn"
+                          >
+                            <i class="fas fa-download me-2"></i> Custom Download
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recommendations Section -->
+                <div
+                  class="recommendations-section"
+                  id="recommendations-section"
+                >
+                  <h6>You might also like:</h6>
+                  <div
+                    class="recommendations-container"
+                    id="recommendations-container"
+                  >
+                    <!-- Recommendations will be added here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Page -->
+      <div class="page-content" id="history-page" style="display: none">
+        <div class="row">
+          <div class="col-12">
+            <div class="card main-card">
+              <div class="card-header">
+                <h3><i class="fas fa-history me-2"></i>Download History</h3>
+                <p class="header-subtitle">Your recent downloads</p>
+              </div>
+              <div class="card-body">
+                <div class="history-controls">
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    id="clear-history"
+                  >
+                    <i class="fas fa-trash me-2"></i>Clear History
+                  </button>
+                </div>
+                <div class="history-list" id="history-list">
+                  <!-- History items will be added here -->
+                  <div class="empty-state">
+                    <i class="fas fa-history empty-icon"></i>
+                    <p>No download history yet</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trending Page -->
+      <div class="page-content" id="trending-page" style="display: none">
+        <div class="row">
+          <div class="col-12">
+            <div class="card main-card">
+              <div class="card-header">
+                <h3><i class="fas fa-fire me-2"></i>Trending Videos</h3>
+                <p class="header-subtitle">
+                  Popular videos you might want to download
+                </p>
+              </div>
+              <div class="card-body">
+                <div class="trending-categories">
+                  <button class="category-btn active" data-category="all">
+                    All
+                  </button>
+                  <button class="category-btn" data-category="music">
+                    Music
+                  </button>
+                  <button class="category-btn" data-category="gaming">
+                    Gaming
+                  </button>
+                  <button class="category-btn" data-category="news">
+                    News
+                  </button>
+                  <button class="category-btn" data-category="movies">
+                    Movies
+                  </button>
+                </div>
+                <div class="trending-grid" id="trending-grid">
+                  <!-- This would ideally be populated by a backend API -->
+                  <div class="empty-state">
+                    <i class="fas fa-fire empty-icon"></i>
+                    <p>Trending videos will appear here</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div class="page-content" id="settings-page" style="display: none">
+        <div class="row">
+          <div class="col-12">
+            <div class="card main-card">
+              <div class="card-header">
+                <h3><i class="fas fa-cog me-2"></i>Settings</h3>
+                <p class="header-subtitle">Customize your experience</p>
+              </div>
+              <div class="card-body">
+                <div class="settings-grid">
+                  <div class="setting-group">
+                    <h6>Appearance</h6>
+                    <div class="setting-item">
+                      <div class="setting-label">
+                        <i class="fas fa-moon setting-icon"></i>
+                        <span>Dark Mode</span>
+                      </div>
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="darkmode-switch"
+                        />
+                      </div>
+                    </div>
+                    <div class="setting-item">
+                      <div class="setting-label">
+                        <i class="fas fa-palette setting-icon"></i>
+                        <span>Accent Color</span>
+                      </div>
+                      <div class="color-picker">
+                        <span
+                          class="color-option active"
+                          data-color="#ff0000"
+                          style="background-color: #ff0000"
+                        ></span>
+                        <span
+                          class="color-option"
+                          data-color="#1e88e5"
+                          style="background-color: #1e88e5"
+                        ></span>
+                        <span
+                          class="color-option"
+                          data-color="#7b1fa2"
+                          style="background-color: #7b1fa2"
+                        ></span>
+                        <span
+                          class="color-option"
+                          data-color="#43a047"
+                          style="background-color: #43a047"
+                        ></span>
+                        <span
+                          class="color-option"
+                          data-color="#ff9800"
+                          style="background-color: #ff9800"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="setting-group">
+                    <h6>Download Preferences</h6>
+                    <div class="setting-item">
+                      <div class="setting-label">
+                        <i class="fas fa-film setting-icon"></i>
+                        <span>Default Video Quality</span>
+                      </div>
+                      <select
+                        class="form-select form-select-sm"
+                        id="default-video-quality"
+                      >
+                        <option value="highest">Highest Available</option>
+                        <option value="1080p">1080p</option>
+                        <option value="720p">720p</option>
+                        <option value="480p">480p</option>
+                      </select>
+                    </div>
+                    <div class="setting-item">
+                      <div class="setting-label">
+                        <i class="fas fa-music setting-icon"></i>
+                        <span>Default Audio Format</span>
+                      </div>
+                      <select
+                        class="form-select form-select-sm"
+                        id="default-audio-format"
+                      >
+                        <option value="mp3">MP3</option>
+                        <option value="m4a">M4A</option>
+                      </select>
+                    </div>
+                    <div class="setting-item">
+                      <div class="setting-label">
+                        <i class="fas fa-save setting-icon"></i>
+                        <span>Save Download History</span>
+                      </div>
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="save-history-switch"
+                          checked
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="setting-group">
+                    <h6>Advanced Settings</h6>
+                    <div class="setting-item">
+                      <div class="setting-label">
+                        <i class="fas fa-tachometer-alt setting-icon"></i>
+                        <span>Auto-Fetch Video Info</span>
+                      </div>
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="auto-fetch-switch"
+                        />
+                      </div>
+                    </div>
+                    <div class="setting-item">
+                      <div class="setting-label">
+                        <i class="fas fa-chart-line setting-icon"></i>
+                        <span>Always Show Advanced Options</span>
+                      </div>
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="show-advanced-switch"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="settings-actions">
+                  <button class="btn btn-primary" id="save-settings">
+                    <i class="fas fa-save me-2"></i>Save Settings
+                  </button>
+                  <button class="btn btn-outline-secondary" id="reset-settings">
+                    <i class="fas fa-undo me-2"></i>Reset to Default
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Sidebar (Hidden by default) -->
+    <div class="settings-sidebar" id="settings-sidebar">
+      <div class="settings-sidebar-header">
+        <h5>Quick Settings</h5>
+        <button class="close-btn" id="close-settings">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="settings-sidebar-content">
+        <div class="sidebar-setting-item">
+          <span>Dark Mode</span>
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="sidebar-darkmode-switch"
+            />
+          </div>
+        </div>
+        <div class="sidebar-setting-item">
+          <span>Save History</span>
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="sidebar-history-switch"
+              checked
+            />
+          </div>
+        </div>
+        <div class="sidebar-setting-item">
+          <span>Default Format</span>
+          <select
+            class="form-select form-select-sm"
+            id="sidebar-default-format"
+          >
+            <option value="mp4">MP4 Video</option>
+            <option value="mp3">MP3 Audio</option>
+          </select>
+        </div>
+        <div class="sidebar-theme-selector">
+          <span>Theme Color</span>
+          <div class="sidebar-color-options">
+            <span
+              class="color-option active"
+              data-color="#ff0000"
+              style="background-color: #ff0000"
+            ></span>
+            <span
+              class="color-option"
+              data-color="#1e88e5"
+              style="background-color: #1e88e5"
+            ></span>
+            <span
+              class="color-option"
+              data-color="#7b1fa2"
+              style="background-color: #7b1fa2"
+            ></span>
+            <span
+              class="color-option"
+              data-color="#43a047"
+              style="background-color: #43a047"
+            ></span>
+            <span
+              class="color-option"
+              data-color="#ff9800"
+              style="background-color: #ff9800"
+            ></span>
+          </div>
+        </div>
+      </div>
+      <div class="settings-sidebar-footer">
+        <button class="btn btn-sm btn-primary w-100" id="sidebar-save-settings">
+          Apply Settings
+        </button>
+      </div>
+    </div>
+
+    <!-- Video Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="preview-modal-title">Video Preview</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="embed-responsive">
+              <iframe
+                id="preview-iframe"
+                class="embed-responsive-item"
+                src=""
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div
+        id="toast"
+        class="toast"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="toast-header">
+          <i class="fas fa-bell me-2"></i>
+          <strong class="me-auto" id="toast-title">Notification</strong>
+          <small id="toast-time">Just now</small>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="toast-body" id="toast-message">
+          Hello, world! This is a toast message.
+        </div>
+      </div>
+    </div>
+
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confetti-container"></div>
+
+    <!-- Download Forms (Hidden) -->
+    <form
+      id="download-video-form"
+      method="POST"
+      action="/download"
+      style="display: none"
+    >
+      <input type="hidden" name="url" id="download-url" />
+      <input
+        type="hidden"
+        name="format_type"
+        id="download-format"
+        value="mp4"
+      />
+      <input type="hidden" name="quality" id="download-quality" value="best" />
+      <input
+        type="hidden"
+        name="start_time"
+        id="download-start-time"
+        value="0"
+      />
+      <input type="hidden" name="end_time" id="download-end-time" value="0" />
+    </form>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>MZLAD Downloader | Made with <i class="fas fa-heart"></i></p>
+      </div>
+    </footer>
+
+    <!-- Required JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+  </body>
+</html>
