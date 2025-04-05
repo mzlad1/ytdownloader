@@ -10,8 +10,6 @@ app = Flask(__name__,
             static_folder='static',
             template_folder='templates')
 
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -27,6 +25,13 @@ def get_info():
             'quiet': True,
             'no_warnings': True,
             'skip_download': True,
+            # Add these new options to help bypass bot detection
+            'cookiefile': None,
+            'cookiesargs': '',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'extractor_retries': 3,
+            'fragment_retries': 3,
+            'retries': 10,
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -97,6 +102,9 @@ def get_info():
             })
 
     except Exception as e:
+        # More detailed error logging
+        import traceback
+        print(f"Detailed error: {traceback.format_exc()}")
         return jsonify({"error": f"Error fetching video info: {str(e)}"}), 500
 
 @app.route('/download', methods=['POST'])
@@ -114,9 +122,19 @@ def download():
         unique_id = str(uuid.uuid4())
         download_path = os.path.join('downloads', unique_id)
         
+        # Ensure downloads directory exists
+        os.makedirs('downloads', exist_ok=True)
+        
         ydl_opts = {
             'outtmpl': f'{download_path}.%(ext)s',
             'noplaylist': True,
+            # Add these options to help bypass bot detection
+            'cookiefile': None,
+            'cookiesargs': '',
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'extractor_retries': 3,
+            'fragment_retries': 3,
+            'retries': 10,
         }
         
         # Add time range if specified
@@ -189,6 +207,9 @@ def download():
         return response
 
     except Exception as e:
+        # More detailed error logging
+        import traceback
+        print(f"Detailed error: {traceback.format_exc()}")
         return f"Error downloading: {str(e)}", 500
 
 @app.errorhandler(404)
